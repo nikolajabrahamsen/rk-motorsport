@@ -1,5 +1,5 @@
 // RK Motorsport – service worker (app-skal offline; data går altid direkte til Supabase)
-const CACHE = "rk-parts-v2";
+const CACHE = "rk-parts-v3";
 const SHELL = ["./", "index.html", "logo.png", "manifest.webmanifest",
   "icons/icon-192.png", "icons/icon-512.png", "icons/apple-touch-icon.png"];
 const CDN = ["unpkg.com", "cdn.jsdelivr.net"];

@@ -52,6 +52,12 @@ Flow efter hver løbsweekend:
 
 Opdatering af en eksisterende database: kør hele `schema.sql` igen. Data bevares.
 
+## Brugerkonti, adgangskode og mail
+- Man trykker på sit navn øverst og kommer til **Min profil**. Her kan man skifte navn, adgangskode (kræver den nuværende) og mail.
+- **Glemt kode** og **skift mail** bruger en 6-cifret kode i mailen i stedet for et link. Det er fordi Outlook/Microsoft 365 "Safe Links" åbner links i mails og dermed bruger dem op, før modtageren klikker.
+- For at mailene viser koden, skal skabelonerne i `supabase/templates/` indsættes i Supabase under **Authentication → Emails → Templates** (*Reset Password* og *Change Email Address*). Se README i mappen.
+- "Confirm email" skal være slået fra. Nye brugere godkendes af teamchefen i appen.
+
 ## Stregkoder (forberedt)
 - Stregkodefeltet virker allerede: findes koden i varelisten, udfyldes navn og pris automatisk.
 - **USB-/Bluetooth-scannere** fungerer som tastatur og virker med det samme.

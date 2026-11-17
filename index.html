@@ -31,6 +31,9 @@
   header.top .t{font-weight:700;line-height:1.1}
   header.top .s{font-size:12px;color:var(--muted)}
   header.top .sp{flex:1}
+  header.top .who{border:0;background:none;padding:0;text-align:left;font:inherit;color:inherit;cursor:pointer}
+  header.top .who u{color:var(--blue)}
+  .code-input{font-size:24px;letter-spacing:.3em;text-align:center;font-variant-numeric:tabular-nums}
   nav.tabs{display:flex;gap:4px;overflow-x:auto;padding:8px 10px;background:#fff;border-bottom:1px solid var(--line);position:sticky;top:calc(env(safe-area-inset-top) + 51px);z-index:19}
   nav.tabs button{flex:0 0 auto;border:0;background:transparent;padding:8px 12px;border-radius:999px;font-weight:600;color:var(--muted);font-size:14px}
   nav.tabs button.on{background:var(--blue);color:#fff}
@@ -233,15 +236,30 @@ function CameraScanner({ onResult, onClose }) {
 }
 
 // =====================================================================
-// Login
+// Login (glemt kode bruger en engangskode fra mailen – ikke et link,
+// fordi Outlook "Safe Links" ellers bruger linket op før brugeren klikker)
 // =====================================================================
+const authMsg = (e) => {
+  const m = e?.message || String(e);
+  if (m === "Invalid login credentials") return "Forkert email eller adgangskode";
+  if (/expired|invalid/i.test(m) && /otp|token/i.test(m)) return "Koden er forkert eller udløbet – bed om en ny";
+  if (/rate limit/i.test(m)) return "For mange forsøg – vent lidt og prøv igen";
+  if (/same.*password|different from the old/i.test(m)) return "Den nye adgangskode skal være forskellig fra den gamle";
+  if (/already.*registered|already been registered/i.test(m)) return "Mailadressen er allerede i brug";
+  return m;
+};
+const cleanCode = (s) => String(s || "").replace(/\D/g, "");
+
 function Login() {
-  const [mode, setMode] = useState("login");
+  const [mode, setMode] = useState("login");     // login | signup | reset | resetCode
   const [email, setEmail] = useState("");
   const [pw, setPw] = useState("");
+  const [pw2, setPw2] = useState("");
   const [name, setName] = useState("");
+  const [code, setCode] = useState("");
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState("");
+  const go = (m) => { setMode(m); setMsg(""); setPw(""); setPw2(""); setCode(""); };
 
   const submit = async (e) => {
     e.preventDefault(); setBusy(true); setMsg("");
@@ -254,35 +272,65 @@ function Login() {
         const { data, error } = await sb.auth.signUp({ email, password: pw, options: { data: { full_name: name.trim() }, emailRedirectTo: location.href.split("#")[0] } });
         if (error) throw error;
         if (!data.session) setMsg("Tjek din mail og bekræft din konto – derefter kan du logge ind.");
-      } else {
-        const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: location.href.split("#")[0] });
+      } else if (mode === "reset") {
+        const { error } = await sb.auth.resetPasswordForEmail(email.trim());
         if (error) throw error;
-        setMsg("Der er sendt et link til nulstilling af adgangskode.");
+        setMode("resetCode");
+      } else {
+        if (pw.length < 6) throw new Error("Adgangskoden skal være mindst 6 tegn");
+        if (pw !== pw2) throw new Error("De to adgangskoder er ikke ens");
+        window.__rkInlineReset = true;
+        const { error } = await sb.auth.verifyOtp({ email: email.trim(), token: cleanCode(code), type: "recovery" });
+        if (error) throw error;
+        const { error: e2 } = await sb.auth.updateUser({ password: pw });
+        window.__rkInlineReset = false;
+        if (e2) throw e2;
+        toast("Adgangskode skiftet – du er logget ind");
       }
-    } catch (e) { setMsg(e.message === "Invalid login credentials" ? "Forkert email eller adgangskode" : e.message); }
+    } catch (e) { window.__rkInlineReset = false; setMsg(authMsg(e)); }
     setBusy(false);
   };
+
+  const title = { login: "Log ind", signup: "Opret bruger", reset: "Glemt adgangskode", resetCode: "Vælg ny adgangskode" }[mode];
+  const btn = { login: "Log ind", signup: "Opret", reset: "Send kode", resetCode: "Gem ny adgangskode" }[mode];
 
   return (
     <div className="login">
       <img src="logo.png" alt={TEAM_NAME} />
       <div className="card">
-        <h2 className="center">{mode === "login" ? "Log ind" : mode === "signup" ? "Opret bruger" : "Glemt adgangskode"}</h2>
+        <h2 className="center">{title}</h2>
         <form onSubmit={submit}>
           {mode === "signup" && (<><label>Navn</label><input value={name} onChange={e => setName(e.target.value)} autoComplete="name" /></>)}
-          <label>Email</label>
-          <input type="email" value={email} onChange={e => setEmail(e.target.value)} autoComplete="email" required />
-          {mode !== "reset" && (<><label>Adgangskode</label>
-            <input type="password" value={pw} onChange={e => setPw(e.target.value)} autoComplete={mode === "login" ? "current-password" : "new-password"} minLength={6} required /></>)}
+          {mode === "resetCode" ? (
+            <>
+              <p className="small muted" style={{ marginTop: 0 }}>Vi har sendt en kode til <b>{email}</b>. Tjek også spam.</p>
+              <label>Kode fra mailen</label>
+              <input className="code-input" inputMode="numeric" autoComplete="one-time-code" maxLength={10} value={code} onChange={e => setCode(e.target.value)} required />
+              <label>Ny adgangskode</label>
+              <input type="password" value={pw} onChange={e => setPw(e.target.value)} autoComplete="new-password" minLength={6} required />
+              <label>Gentag ny adgangskode</label>
+              <input type="password" value={pw2} onChange={e => setPw2(e.target.value)} autoComplete="new-password" minLength={6} required />
+            </>
+          ) : (
+            <>
+              <label>Email</label>
+              <input type="email" value={email} onChange={e => setEmail(e.target.value)} autoComplete="email" required />
+              {mode !== "reset" && (<><label>Adgangskode</label>
+                <input type="password" value={pw} onChange={e => setPw(e.target.value)} autoComplete={mode === "login" ? "current-password" : "new-password"} minLength={6} required /></>)}
+              {mode === "reset" && <p className="small muted">Du får en mail med en kode, som du taster ind på næste skærm.</p>}
+            </>
+          )}
           {msg && <p className="small" style={{ color: "var(--warn)" }}>{msg}</p>}
-          <button className="btn block" style={{ marginTop: 14 }} disabled={busy}>
-            {busy ? "Vent…" : mode === "login" ? "Log ind" : mode === "signup" ? "Opret" : "Send link"}
-          </button>
+          <button className="btn block" style={{ marginTop: 14 }} disabled={busy}>{busy ? "Vent…" : btn}</button>
         </form>
         <div className="row" style={{ justifyContent: "space-between", marginTop: 10 }}>
-          {mode !== "login" ? <button className="btn ghost sm" onClick={() => setMode("login")}>Tilbage til login</button>
-            : <button className="btn ghost sm" onClick={() => setMode("signup")}>Opret bruger</button>}
-          {mode === "login" && <button className="btn ghost sm" onClick={() => setMode("reset")}>Glemt kode?</button>}
+          {mode !== "login" ? <button className="btn ghost sm" onClick={() => go("login")}>Tilbage til login</button>
+            : <button className="btn ghost sm" onClick={() => go("signup")}>Opret bruger</button>}
+          {mode === "login" && <button className="btn ghost sm" onClick={() => go("reset")}>Glemt kode?</button>}
+          {mode === "resetCode" && <button className="btn ghost sm" disabled={busy} onClick={async () => {
+            const { error } = await sb.auth.resetPasswordForEmail(email.trim());
+            setMsg(error ? authMsg(error) : "Ny kode sendt.");
+          }}>Send ny kode</button>}
         </div>
       </div>
     </div>
@@ -301,6 +349,125 @@ function SetNewPassword({ onDone }) {
     <div className="login"><div className="card"><h2>Ny adgangskode</h2>
       <form onSubmit={save}><input type="password" minLength={6} value={pw} onChange={e => setPw(e.target.value)} required />
         <button className="btn block" style={{ marginTop: 12 }}>Gem</button></form></div></div>
+  );
+}
+
+// =====================================================================
+// Min profil: navn, adgangskode og mail (mail bekræftes med kode)
+// =====================================================================
+function ProfileView({ profile, onSaved }) {
+  const [name, setName] = useState(profile.full_name || "");
+  const [cur, setCur] = useState(""); const [pw, setPw] = useState(""); const [pw2, setPw2] = useState("");
+  const [newEmail, setNewEmail] = useState("");
+  const [pending, setPending] = useState(null);   // { email } når der venter en kode
+  const [code, setCode] = useState("");
+  const [busy, setBusy] = useState("");
+  const [authEmail, setAuthEmail] = useState(profile.email);
+
+  useEffect(() => { sb.auth.getUser().then(({ data }) => data?.user?.email && setAuthEmail(data.user.email)); }, []);
+
+  const saveName = async (e) => {
+    e.preventDefault();
+    if (!name.trim()) return toast("Skriv dit navn", true);
+    setBusy("name");
+    const { error } = await sb.from("profiles").update({ full_name: name.trim() }).eq("id", profile.id);
+    setBusy("");
+    if (error) return toast(error.message, true);
+    toast("Navn gemt"); onSaved();
+  };
+
+  const savePw = async (e) => {
+    e.preventDefault();
+    if (pw.length < 6) return toast("Adgangskoden skal være mindst 6 tegn", true);
+    if (pw !== pw2) return toast("De to nye adgangskoder er ikke ens", true);
+    setBusy("pw");
+    // bekræft nuværende kode først, så en åben telefon ikke kan bruges til at skifte kode
+    const { error: e1 } = await sb.auth.signInWithPassword({ email: authEmail, password: cur });
+    if (e1) { setBusy(""); return toast("Nuværende adgangskode er forkert", true); }
+    const { error } = await sb.auth.updateUser({ password: pw });
+    setBusy("");
+    if (error) return toast(authMsg(error), true);
+    setCur(""); setPw(""); setPw2(""); toast("Adgangskode skiftet ✓");
+  };
+
+  const startEmail = async (e) => {
+    e.preventDefault();
+    const em = newEmail.trim().toLowerCase();
+    if (!/^\S+@\S+\.\S+$/.test(em)) return toast("Skriv en gyldig mailadresse", true);
+    if (em === (authEmail || "").toLowerCase()) return toast("Det er din nuværende mail", true);
+    setBusy("email");
+    const { error } = await sb.auth.updateUser({ email: em });
+    setBusy("");
+    if (error) return toast(authMsg(error), true);
+    setPending({ email: em, step: 1 }); setCode("");
+  };
+
+  const verifyEmail = async (e) => {
+    e.preventDefault();
+    setBusy("code");
+    const token = cleanCode(code);
+    // Koden kan være sendt til den nye eller (ved "sikker mailændring") den gamle adresse
+    let res = await sb.auth.verifyOtp({ email: pending.email, token, type: "email_change" });
+    if (res.error) res = await sb.auth.verifyOtp({ email: authEmail, token, type: "email_change" });
+    if (res.error) { setBusy(""); return toast(authMsg(res.error), true); }
+    const { data } = await sb.auth.getUser();
+    setBusy(""); setCode("");
+    if (data?.user?.email?.toLowerCase() === pending.email) {
+      setAuthEmail(data.user.email); setPending(null); setNewEmail("");
+      toast("Mail ændret ✓"); onSaved();
+    } else {
+      setPending({ ...pending, step: 2 });
+      toast("Første kode godkendt – indtast koden fra den anden mail");
+    }
+  };
+
+  return (
+    <>
+      <h2>Min profil</h2>
+      <form className="card" onSubmit={saveName}>
+        <h3>Navn</h3>
+        <input value={name} onChange={e => setName(e.target.value)} autoComplete="name" />
+        <button className="btn block" style={{ marginTop: 12 }} disabled={busy === "name" || name.trim() === (profile.full_name || "")}>Gem navn</button>
+      </form>
+
+      <form className="card" onSubmit={savePw}>
+        <h3>Skift adgangskode</h3>
+        <input type="email" value={authEmail || ""} autoComplete="username" readOnly hidden />
+        <label style={{ marginTop: 0 }}>Nuværende adgangskode</label>
+        <input type="password" value={cur} onChange={e => setCur(e.target.value)} autoComplete="current-password" required />
+        <label>Ny adgangskode</label>
+        <input type="password" value={pw} onChange={e => setPw(e.target.value)} autoComplete="new-password" minLength={6} required />
+        <label>Gentag ny adgangskode</label>
+        <input type="password" value={pw2} onChange={e => setPw2(e.target.value)} autoComplete="new-password" minLength={6} required />
+        <button className="btn block" style={{ marginTop: 12 }} disabled={busy === "pw"}>{busy === "pw" ? "Gemmer…" : "Skift adgangskode"}</button>
+      </form>
+
+      <div className="card">
+        <h3>Mail</h3>
+        <p className="small muted" style={{ marginTop: 0 }}>Nuværende: <b>{authEmail}</b></p>
+        {!pending ? (
+          <form onSubmit={startEmail}>
+            <label style={{ marginTop: 0 }}>Ny mailadresse</label>
+            <input type="email" value={newEmail} onChange={e => setNewEmail(e.target.value)} autoComplete="email" required />
+            <button className="btn block" style={{ marginTop: 12 }} disabled={busy === "email"}>{busy === "email" ? "Sender…" : "Send kode til ny mail"}</button>
+          </form>
+        ) : (
+          <form onSubmit={verifyEmail}>
+            <div className="banner">
+              {pending.step === 1
+                ? <>Vi har sendt en kode til <b>{pending.email}</b>. Har du sat sikker mailændring til, får du også en kode på din nuværende mail – indtast dem én ad gangen.</>
+                : <>Indtast nu koden fra den anden mail.</>}
+            </div>
+            <label style={{ marginTop: 0 }}>Kode fra mailen</label>
+            <input className="code-input" inputMode="numeric" autoComplete="one-time-code" maxLength={10} value={code} onChange={e => setCode(e.target.value)} required />
+            <div className="row" style={{ marginTop: 12 }}>
+              <button type="button" className="btn sec" onClick={() => { setPending(null); setCode(""); }}>Annullér</button>
+              <button className="btn grow" disabled={busy === "code"}>{busy === "code" ? "Tjekker…" : "Bekræft"}</button>
+            </div>
+          </form>
+        )}
+      </div>
+    </>
   );
 }
 
@@ -1202,7 +1369,7 @@ function App() {
 
   useEffect(() => {
     sb.auth.getSession().then(({ data }) => setSession(data.session));
-    const { data: sub } = sb.auth.onAuthStateChange((ev, s) => { setSession(s); if (ev === "PASSWORD_RECOVERY") setRecovery(true); });
+    const { data: sub } = sb.auth.onAuthStateChange((ev, s) => { setSession(s); if (ev === "PASSWORD_RECOVERY" && !window.__rkInlineReset) setRecovery(true); });
     return () => sub.subscription.unsubscribe();
   }, []);
 
@@ -1228,19 +1395,25 @@ function App() {
   const tabs = isAdmin
     ? [["reg", "Registrér"], ["sum", "Oversigt"], ["events", "Løb"], ["drivers", "Kørere"], ["users", "Brugere"], ["products", "Varer"], ["eco", "e-conomic"]]
     : [];
-  const cur = isAdmin ? (tabs.find(t => t[0] === tab) ? tab : "reg") : "reg";
+  const cur = tab === "profil" ? "profil" : isAdmin ? (tabs.find(t => t[0] === tab) ? tab : "reg") : "reg";
 
   return (
     <>
       <header className="top">
         <img src="icons/icon-192.png" alt="" />
-        <div><div className="t">{TEAM_NAME}</div><div className="s">{profile.full_name || profile.email}{isAdmin ? " · admin" : ""}</div></div>
+        <button className="who" onClick={() => go(cur === "profil" ? "reg" : "profil")} title="Min profil">
+          <div className="t">{TEAM_NAME}</div><div className="s">{profile.full_name || profile.email}{isAdmin ? " · admin" : ""} · <u>{cur === "profil" ? "luk profil" : "min profil"}</u></div></button>
         <div className="sp" />
         <button className="btn ghost sm" onClick={logout}>Log ud</button>
       </header>
       {isAdmin && <nav className="tabs">{tabs.map(([k, l]) => <button key={k} className={cur === k ? "on" : ""} onClick={() => go(k)}>{l}</button>)}</nav>}
       <main key={profile.id}>
-        {profile.role === "pending" ? (
+        {cur === "profil" ? (
+          <>
+            {!isAdmin && <button className="btn ghost" onClick={() => go("reg")} style={{ paddingLeft: 0 }}>‹ Tilbage</button>}
+            <ProfileView profile={profile} onSaved={loadProfile} />
+          </>
+        ) : profile.role === "pending" ? (
           <div className="card center">
             <h2>Afventer godkendelse</h2>
             <p className="muted">Din bruger er oprettet. Teamchefen skal godkende dig og tilknytte dig til dine kørere, før du kan registrere reservedele.</p>

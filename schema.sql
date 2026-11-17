@@ -225,6 +225,20 @@ create trigger on_auth_user_created
   after insert on auth.users
   for each row execute function public.handle_new_user();
 
+-- Hold profiles.email opdateret når en bruger skifter mail
+create or replace function public.handle_user_email_change() returns trigger
+language plpgsql security definer set search_path = public as $$
+begin
+  update profiles set email = new.email where id = new.id;
+  return new;
+end $$;
+
+drop trigger if exists on_auth_user_email_changed on auth.users;
+create trigger on_auth_user_email_changed
+  after update of email on auth.users
+  for each row when (old.email is distinct from new.email)
+  execute function public.handle_user_email_change();
+
 -- Mekanikere må ikke ændre pris/faktureret-status – kun admin.
 -- Linjer er låst når teamchefen har godkendt eller de er sendt til e-conomic.
 -- (auth.uid() er null for Edge Function med service-role → ingen begrænsning)
