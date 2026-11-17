@@ -1,0 +1,1262 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>RK Motorsport – Reservedele</title>
+<meta name="theme-color" content="#00539B" />
+<link rel="manifest" href="manifest.webmanifest" />
+<link rel="icon" href="icons/icon-192.png" />
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<meta name="apple-mobile-web-app-title" content="RK Dele" />
+<script src="https://unpkg.com/react@18.3.1/umd/react.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/@babel/standalone@7.26.4/babel.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<style>
+  :root{
+    --blue:#00539B; --blue-d:#003F77; --blue-l:#E6EEF6;
+    --bg:#F4F6F9; --card:#fff; --text:#111827; --muted:#6B7280; --line:#E5E7EB;
+    --ok:#15803D; --warn:#B45309; --err:#B91C1C;
+    --r:12px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;font-size:16px;-webkit-tap-highlight-color:transparent}
+  header.top{position:sticky;top:0;z-index:20;background:#fff;border-bottom:1px solid var(--line);
+    padding:calc(env(safe-area-inset-top) + 8px) 14px 8px;display:flex;align-items:center;gap:10px}
+  header.top img{height:34px;width:34px;border-radius:6px}
+  header.top .t{font-weight:700;line-height:1.1}
+  header.top .s{font-size:12px;color:var(--muted)}
+  header.top .sp{flex:1}
+  nav.tabs{display:flex;gap:4px;overflow-x:auto;padding:8px 10px;background:#fff;border-bottom:1px solid var(--line);position:sticky;top:calc(env(safe-area-inset-top) + 51px);z-index:19}
+  nav.tabs button{flex:0 0 auto;border:0;background:transparent;padding:8px 12px;border-radius:999px;font-weight:600;color:var(--muted);font-size:14px}
+  nav.tabs button.on{background:var(--blue);color:#fff}
+  main{max-width:860px;margin:0 auto;padding:14px 12px calc(env(safe-area-inset-bottom) + 90px)}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:14px;margin-bottom:12px}
+  h2{font-size:18px;margin:4px 0 12px} h3{font-size:16px;margin:0 0 8px}
+  label{display:block;font-size:13px;font-weight:600;color:var(--muted);margin:10px 0 4px}
+  input,select,textarea{width:100%;font:inherit;padding:11px 12px;border:1px solid #D1D5DB;border-radius:10px;background:#fff;color:var(--text)}
+  input:focus,select:focus,textarea:focus{outline:2px solid var(--blue);border-color:transparent}
+  .row{display:flex;gap:8px;align-items:center}
+  .row>*{min-width:0}
+  .grow{flex:1}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:0;border-radius:10px;padding:11px 16px;font:inherit;font-weight:600;cursor:pointer;background:var(--blue);color:#fff;white-space:nowrap}
+  .btn:disabled{opacity:.5}
+  .btn.sec{background:var(--blue-l);color:var(--blue)}
+  .btn.ghost{background:transparent;color:var(--blue);padding:8px 10px}
+  .btn.danger{background:#FEE2E2;color:var(--err)}
+  .btn.sm{padding:7px 11px;font-size:14px}
+  .btn.block{width:100%}
+  .muted{color:var(--muted)} .small{font-size:13px}
+  .list{list-style:none;margin:0;padding:0}
+  .list li{display:flex;align-items:center;gap:10px;padding:12px 2px;border-bottom:1px solid var(--line)}
+  .list li:last-child{border-bottom:0}
+  .tap{cursor:pointer}
+  .pill{display:inline-block;font-size:12px;font-weight:700;padding:3px 8px;border-radius:999px;background:var(--blue-l);color:var(--blue)}
+  .pill.gray{background:#F3F4F6;color:var(--muted)} .pill.ok{background:#DCFCE7;color:var(--ok)} .pill.warn{background:#FEF3C7;color:var(--warn)}
+  .num{display:inline-flex;align-items:center;justify-content:center;min-width:42px;height:42px;border-radius:10px;background:var(--blue);color:#fff;font-weight:800}
+  .stepper{display:flex;align-items:center;gap:6px}
+  .stepper button{width:44px;height:44px;border-radius:10px;border:1px solid #D1D5DB;background:#fff;font-size:22px;font-weight:700}
+  .stepper input{text-align:center;width:70px}
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  th,td{text-align:left;padding:8px 6px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.03em}
+  td.r,th.r{text-align:right}
+  .toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 18px);transform:translateX(-50%);background:#111827;color:#fff;padding:11px 16px;border-radius:10px;z-index:100;font-size:14px;max-width:90vw}
+  .toast.err{background:var(--err)}
+  .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:50;display:flex;align-items:flex-end;justify-content:center}
+  .modal{background:#fff;width:100%;max-width:560px;max-height:92vh;overflow:auto;border-radius:16px 16px 0 0;padding:16px 16px calc(env(safe-area-inset-bottom) + 16px)}
+  @media(min-width:640px){.modal-bg{align-items:center}.modal{border-radius:16px}}
+.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+  .steps div{background:var(--bg);border-radius:10px;padding:8px;text-align:center}
+  .steps b{display:block;font-size:20px} .steps span{font-size:11px;color:var(--muted)}
+  .scanner video{width:100%;border-radius:10px;background:#000;aspect-ratio:4/3;object-fit:cover}
+  .banner{background:#FEF3C7;color:#78350F;padding:10px 12px;border-radius:10px;font-size:14px;margin-bottom:12px}
+  .center{text-align:center}
+  .login{max-width:380px;margin:8vh auto 0;padding:0 16px}
+  .login img{width:150px;display:block;margin:0 auto 18px}
+  .print-only{display:none}
+  @media print{
+    header.top,nav.tabs,.no-print,.toast{display:none!important}
+    .print-only{display:block}
+    body{background:#fff} main{padding:0;max-width:none}
+    .card{border:0;padding:0;margin-bottom:22px;page-break-inside:avoid}
+    .driver-block{page-break-after:always}
+  }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel" data-presets="react">
+// =====================================================================
+// KONFIGURATION – indsæt jeres egne Supabase-nøgler her
+// =====================================================================
+const SUPABASE_URL = "https://dbbwwxyjxivinlpdgfxv.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRiYnd3eHlqeGl2aW5scGRnZnh2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQ5MDcxNjgsImV4cCI6MjExMDQ4MzE2OH0.5Dz8xH0R50N2YKKrymibf7ZaJjy-7M1dPdwepqmuKpU";
+const TEAM_NAME = "RK Motorsport";
+// =====================================================================
+
+const { useState, useEffect, useMemo, useRef, useCallback } = React;
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+// ---------- helpers ----------
+const kr = (n) => n == null || n === "" || isNaN(n) ? "–" :
+  Number(n).toLocaleString("da-DK", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " kr.";
+const numDa = (n) => n == null || n === "" ? "" : Number(n).toLocaleString("da-DK", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const parseNum = (s) => { if (s === "" || s == null) return null; const v = parseFloat(String(s).replace(/\./g, "").replace(",", ".")); return isNaN(v) ? null : v; };
+const parseQty = (s) => { const v = parseFloat(String(s).replace(",", ".")); return isNaN(v) ? 0 : v; };
+const fmtDate = (d) => d ? new Date(d).toLocaleDateString("da-DK", { day: "numeric", month: "short", year: "numeric" }) : "";
+const fmtTime = (d) => d ? new Date(d).toLocaleString("da-DK", { weekday: "short", hour: "2-digit", minute: "2-digit" }) : "";
+const uuid = () => (crypto.randomUUID ? crypto.randomUUID() :
+  "10000000-1000-4000-8000-100000000000".replace(/[018]/g, c => (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)));
+const lsGet = (k, d) => { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch { return d; } };
+const lsSet = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} };
+const lineTotal = (p) => p.unit_price == null ? null : Number(p.unit_price) * Number(p.qty);
+
+function downloadFile(name, content, mime) {
+  const blob = new Blob([content], { type: mime });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob); a.download = name;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+}
+const csvCell = (v) => { const s = v == null ? "" : String(v); return /[;"\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; };
+
+// ---------- toast ----------
+let toastFn = () => {};
+const toast = (msg, err) => toastFn(msg, err);
+function Toaster() {
+  const [t, setT] = useState(null);
+  useEffect(() => { toastFn = (msg, err) => { setT({ msg, err }); clearTimeout(window.__tt); window.__tt = setTimeout(() => setT(null), 3200); }; }, []);
+  return t ? <div className={"toast" + (t.err ? " err" : "")}>{t.msg}</div> : null;
+}
+
+// ---------- offline-kø for registreringer ----------
+const QUEUE_KEY = "rk_parts_queue";
+const getQueue = () => lsGet(QUEUE_KEY, []);
+const setQueue = (q) => { lsSet(QUEUE_KEY, q); window.dispatchEvent(new Event("rkqueue")); };
+async function flushQueue() {
+  const q = getQueue(); if (!q.length || !navigator.onLine) return;
+  const rest = [];
+  for (const row of q) {
+    const { error } = await sb.from("parts_log").insert(row);
+    if (error && error.code !== "23505") { // 23505 = findes allerede (allerede synket)
+      if (/fetch|network/i.test(error.message)) rest.push(row);
+      else console.warn("Kunne ikke synke", row, error);
+    }
+  }
+  setQueue(rest);
+  if (q.length !== rest.length) window.dispatchEvent(new Event("rksynced"));
+}
+window.addEventListener("online", flushQueue);
+function useQueueCount() {
+  const [n, setN] = useState(getQueue().length);
+  useEffect(() => { const f = () => setN(getQueue().length); window.addEventListener("rkqueue", f); return () => window.removeEventListener("rkqueue", f); }, []);
+  return n;
+}
+
+// ---------- godkendelsesstatus ----------
+const STATUS = {
+  none: ["Ikke godkendt", "gray"],
+  rejected: ["Sendt retur", "warn"],
+  mechanic_approved: ["Godkendt af mekaniker", ""],
+  chief_approved: ["Godkendt af teamchef", "ok"],
+  sending: ["Sender…", ""],
+  sent: ["Sendt til e-conomic", "ok"],
+};
+function StatusPill({ a }) {
+  const st = a?.status || "none"; const [t, c] = STATUS[st];
+  return <span className={"pill " + c}>{t}{st === "sent" && a.economic_draft_number ? " · kladde " + a.economic_draft_number : ""}</span>;
+}
+
+// ---------- modal ----------
+function Modal({ title, onClose, children }) {
+  return (
+    <div className="modal-bg" onClick={onClose}>
+      <div className="modal" onClick={(e) => e.stopPropagation()}>
+        <div className="row" style={{ marginBottom: 6 }}>
+          <h2 className="grow" style={{ margin: 0 }}>{title}</h2>
+          <button className="btn ghost" onClick={onClose}>Luk</button>
+        </div>
+        {children}
+      </div>
+    </div>
+  );
+}
+
+// =====================================================================
+// Stregkode-scanner (kamera via BarcodeDetector – Chrome/Android m.fl.)
+// USB/Bluetooth-scannere virker også: de "skriver" bare i stregkodefeltet.
+// =====================================================================
+const canCameraScan = "BarcodeDetector" in window && !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
+
+function CameraScanner({ onResult, onClose }) {
+  const videoRef = useRef(null);
+  const [err, setErr] = useState("");
+  useEffect(() => {
+    let stream, stop = false, timer;
+    (async () => {
+      try {
+        const formats = await window.BarcodeDetector.getSupportedFormats();
+        const det = new window.BarcodeDetector({ formats });
+        stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+        videoRef.current.srcObject = stream; await videoRef.current.play();
+        const tick = async () => {
+          if (stop) return;
+          try {
+            const codes = await det.detect(videoRef.current);
+            if (codes.length) { if (navigator.vibrate) navigator.vibrate(80); onResult(codes[0].rawValue); return; }
+          } catch {}
+          timer = setTimeout(tick, 250);
+        };
+        tick();
+      } catch (e) { setErr("Kunne ikke starte kameraet: " + e.message); }
+    })();
+    return () => { stop = true; clearTimeout(timer); if (stream) stream.getTracks().forEach(t => t.stop()); };
+  }, []);
+  return (
+    <Modal title="Scan stregkode" onClose={onClose}>
+      <div className="scanner">
+        {err ? <div className="banner">{err}</div> : <video ref={videoRef} playsInline muted />}
+        <p className="small muted center">Hold stregkoden foran kameraet</p>
+      </div>
+    </Modal>
+  );
+}
+
+// =====================================================================
+// Login
+// =====================================================================
+function Login() {
+  const [mode, setMode] = useState("login");
+  const [email, setEmail] = useState("");
+  const [pw, setPw] = useState("");
+  const [name, setName] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState("");
+
+  const submit = async (e) => {
+    e.preventDefault(); setBusy(true); setMsg("");
+    try {
+      if (mode === "login") {
+        const { error } = await sb.auth.signInWithPassword({ email, password: pw });
+        if (error) throw error;
+      } else if (mode === "signup") {
+        if (!name.trim()) throw new Error("Skriv dit navn");
+        const { data, error } = await sb.auth.signUp({ email, password: pw, options: { data: { full_name: name.trim() }, emailRedirectTo: location.href.split("#")[0] } });
+        if (error) throw error;
+        if (!data.session) setMsg("Tjek din mail og bekræft din konto – derefter kan du logge ind.");
+      } else {
+        const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: location.href.split("#")[0] });
+        if (error) throw error;
+        setMsg("Der er sendt et link til nulstilling af adgangskode.");
+      }
+    } catch (e) { setMsg(e.message === "Invalid login credentials" ? "Forkert email eller adgangskode" : e.message); }
+    setBusy(false);
+  };
+
+  return (
+    <div className="login">
+      <img src="logo.png" alt={TEAM_NAME} />
+      <div className="card">
+        <h2 className="center">{mode === "login" ? "Log ind" : mode === "signup" ? "Opret bruger" : "Glemt adgangskode"}</h2>
+        <form onSubmit={submit}>
+          {mode === "signup" && (<><label>Navn</label><input value={name} onChange={e => setName(e.target.value)} autoComplete="name" /></>)}
+          <label>Email</label>
+          <input type="email" value={email} onChange={e => setEmail(e.target.value)} autoComplete="email" required />
+          {mode !== "reset" && (<><label>Adgangskode</label>
+            <input type="password" value={pw} onChange={e => setPw(e.target.value)} autoComplete={mode === "login" ? "current-password" : "new-password"} minLength={6} required /></>)}
+          {msg && <p className="small" style={{ color: "var(--warn)" }}>{msg}</p>}
+          <button className="btn block" style={{ marginTop: 14 }} disabled={busy}>
+            {busy ? "Vent…" : mode === "login" ? "Log ind" : mode === "signup" ? "Opret" : "Send link"}
+          </button>
+        </form>
+        <div className="row" style={{ justifyContent: "space-between", marginTop: 10 }}>
+          {mode !== "login" ? <button className="btn ghost sm" onClick={() => setMode("login")}>Tilbage til login</button>
+            : <button className="btn ghost sm" onClick={() => setMode("signup")}>Opret bruger</button>}
+          {mode === "login" && <button className="btn ghost sm" onClick={() => setMode("reset")}>Glemt kode?</button>}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function SetNewPassword({ onDone }) {
+  const [pw, setPw] = useState("");
+  const save = async (e) => {
+    e.preventDefault();
+    const { error } = await sb.auth.updateUser({ password: pw });
+    if (error) return toast(error.message, true);
+    toast("Adgangskode opdateret"); onDone();
+  };
+  return (
+    <div className="login"><div className="card"><h2>Ny adgangskode</h2>
+      <form onSubmit={save}><input type="password" minLength={6} value={pw} onChange={e => setPw(e.target.value)} required />
+        <button className="btn block" style={{ marginTop: 12 }}>Gem</button></form></div></div>
+  );
+}
+
+// =====================================================================
+// Registrering af reservedele (mekaniker-visning – bruges også af admin)
+// =====================================================================
+function useEvents() {
+  const [events, setEvents] = useState([]);
+  const load = useCallback(async () => {
+    const { data, error } = await sb.from("events").select("*").order("date_from", { ascending: false }).limit(15);
+    if (!error) { setEvents(data); lsSet("rk_events_cache", data); }
+    else setEvents(lsGet("rk_events_cache", []));
+  }, []);
+  useEffect(() => { load(); }, [load]);
+  return [events, load];
+}
+
+function RegisterView({ profile, isAdmin }) {
+  const [events] = useEvents();
+  const [eventId, setEventId] = useState(lsGet("rk_event", ""));
+  const [drivers, setDrivers] = useState(lsGet("rk_drivers_cache", []));
+  const [driver, setDriver] = useState(null);
+  const [approvals, setApprovals] = useState({});
+  const [withParts, setWithParts] = useState(new Set());
+  const queued = useQueueCount();
+
+  useEffect(() => {
+    if (events.length && !events.find(e => e.id === eventId)) {
+      const first = events.find(e => !e.closed) || events[0];
+      setEventId(first.id); lsSet("rk_event", first.id);
+    }
+  }, [events]);
+
+  const loadStatus = useCallback(async () => {
+    if (!eventId) return;
+    const [a, p] = await Promise.all([
+      sb.from("approvals").select("*").eq("event_id", eventId),
+      sb.from("parts_log").select("driver_id").eq("event_id", eventId),
+    ]);
+    if (a.data) setApprovals(Object.fromEntries(a.data.map(x => [x.driver_id, x])));
+    if (p.data) setWithParts(new Set(p.data.map(x => x.driver_id)));
+  }, [eventId]);
+  useEffect(() => { if (!driver) loadStatus(); }, [loadStatus, driver]);
+
+  // Påmindelse: lukkede løb hvor jeg mangler at godkende forbruget
+  const [todo, setTodo] = useState([]);
+  useEffect(() => {
+    if (isAdmin || driver) return;
+    const closed = events.filter(e => e.closed).map(e => e.id);
+    if (!closed.length) return;
+    (async () => {
+      const [p, a] = await Promise.all([
+        sb.from("parts_log").select("event_id,driver_id").in("event_id", closed),
+        sb.from("approvals").select("event_id,driver_id,status").in("event_id", closed),
+      ]);
+      if (!p.data) return;
+      const done = new Set((a.data || []).filter(x => x.status !== "rejected").map(x => x.event_id + "|" + x.driver_id));
+      const pairs = [...new Set(p.data.map(x => x.event_id + "|" + x.driver_id))].filter(k => !done.has(k));
+      const mine = {};
+      for (const d of new Set(pairs.map(k => k.split("|")[1]))) mine[d] = !!(await sb.rpc("can_approve", { d })).data;
+      const list = pairs.filter(k => mine[k.split("|")[1]]).map(k => { const [e, d] = k.split("|"); return { e, d }; });
+      setTodo(list);
+    })();
+  }, [events, isAdmin, driver]);
+  const todoEvents = [...new Set(todo.map(t => t.e))].map(id => events.find(e => e.id === id)).filter(Boolean);
+
+  useEffect(() => {
+    (async () => {
+      let q = sb.from("drivers").select("*").eq("active", true).order("race_number").order("name");
+      const { data, error } = await q;
+      if (!error) {
+        let list = data;
+        if (isAdmin) {
+          // admin ser alle, men egne kørere først
+          const { data: mine } = await sb.from("driver_mechanics").select("driver_id").eq("user_id", profile.id);
+          const set = new Set((mine || []).map(m => m.driver_id));
+          list = [...data].sort((a, b) => (set.has(b.id) - set.has(a.id)));
+          list.forEach(d => d._mine = set.has(d.id));
+        }
+        setDrivers(list); lsSet("rk_drivers_cache", list);
+      }
+    })();
+  }, []);
+
+  const event = events.find(e => e.id === eventId);
+
+  if (driver && event) return <DriverParts driver={driver} event={event} profile={profile} isAdmin={isAdmin} onBack={() => setDriver(null)} />;
+
+  return (
+    <>
+      {todoEvents.map(ev => (
+        <div key={ev.id} className="card row" style={{ borderColor: "var(--warn)", background: "#FFFBEB" }}>
+          <div className="grow"><b>Godkend forbrug</b><div className="small muted">{ev.name} · {todo.filter(t => t.e === ev.id).length} kører(e) venter på din godkendelse</div></div>
+          {eventId !== ev.id && <button className="btn sm" onClick={() => { setEventId(ev.id); lsSet("rk_event", ev.id); }}>Vis</button>}
+        </div>
+      ))}
+      {queued > 0 && <div className="banner">{queued} registrering(er) venter på netværk og synkroniseres automatisk.</div>}
+      <div className="card">
+        <label style={{ marginTop: 0 }}>Løb / weekend</label>
+        {events.length ? (
+          <select value={eventId} onChange={e => { setEventId(e.target.value); lsSet("rk_event", e.target.value); }}>
+            {events.map(e => <option key={e.id} value={e.id}>{e.name} – {fmtDate(e.date_from)}{e.closed ? " (lukket)" : ""}</option>)}
+          </select>
+        ) : <p className="muted small">Der er ingen løb. {isAdmin ? "Opret et under fanen “Løb”." : "Kontakt teamchefen."}</p>}
+        {event?.closed && <p className="small muted" style={{ marginBottom: 0 }}>Løbet er lukket. Åbn en kører for at se og godkende forbruget.</p>}
+      </div>
+      <div className="card">
+        <h3>{isAdmin ? "Kørere" : "Dine kørere"}</h3>
+        {!drivers.length && <p className="muted small">{isAdmin ? "Ingen kørere endnu – opret dem under “Kørere”." : "Du er ikke tilknyttet nogen kørere endnu."}</p>}
+        <ul className="list">
+          {drivers.map(d => (
+            <li key={d.id} className="tap" onClick={() => event ? setDriver(d) : toast("Vælg et løb først", true)}>
+              <span className="num">{d.race_number || "–"}</span>
+              <div className="grow"><div style={{ fontWeight: 600 }}>{d.name}</div><div className="small muted">{d.class || ""}</div></div>
+              {isAdmin && d._mine && <span className="pill">Din</span>}
+              {(approvals[d.id] || (event?.closed && withParts.has(d.id))) && <StatusPill a={approvals[d.id]} />}
+              <span className="muted">›</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </>
+  );
+}
+
+function DriverParts({ driver, event, profile, isAdmin, onBack }) {
+  const [rows, setRows] = useState([]);
+  const [products, setProducts] = useState(lsGet("rk_products_cache", []));
+  const [scan, setScan] = useState(false);
+  const empty = { barcode: "", description: "", qty: "1", unit_price: "", product_id: null, note: "" };
+  const [f, setF] = useState(empty);
+  const [busy, setBusy] = useState(false);
+  const queued = useQueueCount();
+  const descRef = useRef(null);
+  const [approval, setApproval] = useState(null);
+  const [canApprove, setCanApprove] = useState(false);
+  const [confirmApprove, setConfirmApprove] = useState(false);
+
+  const load = useCallback(async () => {
+    const [p, a] = await Promise.all([
+      sb.from("parts_log").select("*, profiles(full_name)")
+        .eq("event_id", event.id).eq("driver_id", driver.id).order("created_at", { ascending: false }),
+      sb.from("approvals").select("*").eq("event_id", event.id).eq("driver_id", driver.id),
+    ]);
+    if (p.data) setRows(p.data);
+    if (a.data) setApproval(a.data[0] || null);
+  }, [event.id, driver.id]);
+
+  useEffect(() => {
+    load();
+    sb.rpc("can_approve", { d: driver.id }).then(({ data }) => setCanApprove(!!data));
+    sb.from("products").select("id,barcode,sku,name,unit_price").eq("active", true).order("name")
+      .then(({ data }) => { if (data) { setProducts(data); lsSet("rk_products_cache", data); } });
+    const s = () => load(); window.addEventListener("rksynced", s);
+    return () => window.removeEventListener("rksynced", s);
+  }, [load]);
+
+  const applyProduct = (p) => setF(x => ({ ...x, product_id: p.id, barcode: p.barcode || x.barcode, description: p.name, unit_price: p.unit_price != null ? numDa(p.unit_price) : x.unit_price }));
+
+  const lookupBarcode = (code) => {
+    code = (code || "").trim(); if (!code) return;
+    const p = products.find(p => p.barcode === code);
+    if (p) { applyProduct({ ...p, barcode: code }); toast("Fundet: " + p.name); }
+    else { setF(x => ({ ...x, barcode: code, product_id: null })); toast("Stregkode ikke i varelisten – skriv beskrivelse", true); descRef.current && descRef.current.focus(); }
+  };
+
+  const onDescChange = (v) => {
+    const p = products.find(p => p.name.toLowerCase() === v.toLowerCase());
+    if (p) applyProduct(p); else setF(x => ({ ...x, description: v, product_id: null }));
+  };
+
+  const save = async (e) => {
+    e.preventDefault();
+    const qty = parseQty(f.qty);
+    if (!f.description.trim()) return toast("Skriv hvad der er taget", true);
+    if (qty <= 0) return toast("Antal skal være over 0", true);
+    setBusy(true);
+    const row = {
+      id: uuid(), event_id: event.id, driver_id: driver.id, user_id: profile.id,
+      product_id: f.product_id, barcode: f.barcode.trim() || null,
+      description: f.description.trim(), qty, unit_price: parseNum(f.unit_price), note: f.note.trim() || null,
+    };
+    const { error } = navigator.onLine ? await sb.from("parts_log").insert(row) : { error: { message: "offline network" } };
+    if (error) {
+      if (/fetch|network|offline/i.test(error.message)) {
+        setQueue([...getQueue(), row]); toast("Ingen forbindelse – gemt lokalt og synkroniseres senere");
+      } else { setBusy(false); return toast(error.message, true); }
+    } else toast("Registreret ✓");
+    setF(empty); setBusy(false); load();
+  };
+
+  const del = async (r) => {
+    if (!confirm(`Slet "${r.description}"?`)) return;
+    const { error } = await sb.from("parts_log").delete().eq("id", r.id);
+    if (error) toast(error.message, true); else load();
+  };
+
+  const pending = getQueue().filter(q => q.event_id === event.id && q.driver_id === driver.id);
+  const total = rows.reduce((s, r) => s + (lineTotal(r) || 0), 0);
+  const status = approval?.status || "none";
+  const canEdit = isAdmin ? !["chief_approved", "sending", "sent"].includes(status)
+    : status === "rejected" || (status === "none" && !event.closed);
+  const awaitingMech = event.closed && (status === "none" || status === "rejected");
+
+  const approve = async () => {
+    const { error } = await sb.rpc("approve_driver", { e: event.id, d: driver.id });
+    setConfirmApprove(false);
+    if (error) return toast(error.message, true);
+    toast("Forbrug godkendt ✓ – sendt til teamchefen"); load();
+  };
+
+  return (
+    <>
+      <button className="btn ghost" onClick={onBack} style={{ paddingLeft: 0 }}>‹ Tilbage</button>
+      <div className="card row">
+        <span className="num">{driver.race_number || "–"}</span>
+        <div className="grow"><div style={{ fontWeight: 700 }}>{driver.name}</div><div className="small muted">{event.name}{event.closed ? " · lukket" : ""}</div></div>
+        {(approval || awaitingMech) && <StatusPill a={approval} />}
+      </div>
+
+      {status === "rejected" && (
+        <div className="banner"><b>Sendt retur af teamchefen.</b>{approval.comment ? " " + approval.comment : ""}<br />Ret listen og godkend igen.</div>
+      )}
+
+      {awaitingMech && rows.length > 0 && (
+        <div className="card" style={{ borderColor: "var(--blue)" }}>
+          <h3>Godkend forbrug</h3>
+          {canApprove ? <>
+            <p className="small muted" style={{ marginTop: 0 }}>Gennemgå listen herunder. Når du godkender, låses den og sendes til teamchefen.</p>
+            <button className="btn block" onClick={() => setConfirmApprove(true)}>✓ Godkend forbrug</button>
+          </> : <p className="small muted" style={{ margin: 0 }}>Venter på godkendelse fra den ansvarlige mekaniker.</p>}
+        </div>
+      )}
+      {!event.closed && status === "none" && rows.length > 0 && (
+        <p className="small muted" style={{ margin: "0 2px 12px" }}>Når løbet er slut og lukket, godkender den ansvarlige mekaniker listen her.</p>
+      )}
+      {["mechanic_approved", "chief_approved", "sending", "sent"].includes(status) && (
+        <div className="card small muted">
+          Godkendt af mekaniker {fmtTime(approval.mechanic_at)}.
+          {status === "mechanic_approved" && " Venter på teamchefen."}
+          {approval.chief_at && " Godkendt af teamchefen " + fmtTime(approval.chief_at) + "."}
+          {status === "sent" && " Fakturakladde oprettet i e-conomic."}
+        </div>
+      )}
+
+      {canEdit && <form className="card" onSubmit={save}>
+        <h3>Tilføj reservedel</h3>
+        <label style={{ marginTop: 0 }}>Stregkode (valgfri)</label>
+        <div className="row">
+          <input className="grow" inputMode="numeric" placeholder="Scan eller indtast" value={f.barcode}
+            onChange={e => setF({ ...f, barcode: e.target.value })}
+            onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); lookupBarcode(f.barcode); } }}
+            onBlur={() => f.barcode && !f.product_id && lookupBarcode(f.barcode)} />
+          {canCameraScan && <button type="button" className="btn sec" onClick={() => setScan(true)}>📷 Scan</button>}
+        </div>
+
+        <label>Hvad er taget? *</label>
+        <input ref={descRef} list="prodlist" placeholder="fx Kæde 219, Tændrør, Bagdæk…" value={f.description} onChange={e => onDescChange(e.target.value)} />
+        <datalist id="prodlist">{products.map(p => <option key={p.id} value={p.name}>{p.sku || ""}</option>)}</datalist>
+
+        <div className="row" style={{ alignItems: "flex-end" }}>
+          <div>
+            <label>Antal</label>
+            <div className="stepper">
+              <button type="button" onClick={() => setF({ ...f, qty: String(Math.max(1, parseQty(f.qty) - 1)) })}>−</button>
+              <input inputMode="decimal" value={f.qty} onChange={e => setF({ ...f, qty: e.target.value })} />
+              <button type="button" onClick={() => setF({ ...f, qty: String(parseQty(f.qty) + 1) })}>+</button>
+            </div>
+          </div>
+          <div className="grow">
+            <label>Stykpris (valgfri)</label>
+            <input inputMode="decimal" placeholder="kr." value={f.unit_price} onChange={e => setF({ ...f, unit_price: e.target.value })} />
+          </div>
+        </div>
+
+        <label>Note (valgfri)</label>
+        <input value={f.note} onChange={e => setF({ ...f, note: e.target.value })} placeholder="fx skiftet efter heat 2" />
+
+        <button className="btn block" style={{ marginTop: 14 }} disabled={busy}>{busy ? "Gemmer…" : "Registrér"}</button>
+      </form>}
+
+      <div className="card">
+        <div className="row"><h3 className="grow" style={{ margin: 0 }}>Registreret på løbet</h3>{total > 0 && <span className="pill">{kr(total)}</span>}</div>
+        {!rows.length && !pending.length && <p className="muted small">Intet registreret endnu.</p>}
+        <ul className="list">
+          {pending.map(r => (
+            <li key={r.id}><div className="grow"><div><b>{numDa(r.qty).replace(",00", "")} ×</b> {r.description}</div>
+              <div className="small muted">Venter på netværk</div></div><span className="pill warn">Kø</span></li>
+          ))}
+          {rows.map(r => (
+            <li key={r.id}>
+              <div className="grow">
+                <div><b>{numDa(r.qty).replace(",00", "")} ×</b> {r.description}</div>
+                <div className="small muted">{r.profiles?.full_name || ""} · {fmtTime(r.created_at)}{r.note ? " · " + r.note : ""}</div>
+              </div>
+              {r.unit_price != null && <span className="small">{kr(lineTotal(r))}</span>}
+              {r.invoiced ? <span className="pill ok">Faktureret</span> :
+                canEdit && (isAdmin || r.user_id === profile.id || status === "rejected") && <button className="btn danger sm" onClick={() => del(r)}>Slet</button>}
+            </li>
+          ))}
+        </ul>
+      </div>
+      {scan && <CameraScanner onClose={() => setScan(false)} onResult={(c) => { setScan(false); lookupBarcode(c); }} />}
+      {confirmApprove && (
+        <Modal title="Godkend forbrug" onClose={() => setConfirmApprove(false)}>
+          <p><b>{driver.name}</b> · {event.name}</p>
+          <p>{rows.length} linje(r){total > 0 ? ", " + kr(total) : ""}.{rows.some(r => r.unit_price == null) ? " Linjer uden pris prissættes af teamchefen." : ""}</p>
+          <p className="small muted">Du bekræfter, at listen er korrekt. Herefter kan den ikke ændres, medmindre teamchefen sender den retur.</p>
+          <button className="btn block" onClick={approve}>✓ Ja, godkend</button>
+        </Modal>
+      )}
+    </>
+  );
+}
+
+// =====================================================================
+// ADMIN: Oversigt / godkendelse / e-conomic
+// =====================================================================
+function SummaryView() {
+  const [events, setEvents] = useState([]);
+  const [eventId, setEventId] = useState("");
+  const [rows, setRows] = useState([]);
+  const [approvals, setApprovals] = useState({});
+  const [names, setNames] = useState({});
+  const [merge, setMerge] = useState(lsGet("rk_merge", true));
+  const [hideSent, setHideSent] = useState(false);
+  const [reject, setReject] = useState(null);
+  const [sending, setSending] = useState(false);
+  const [result, setResult] = useState(null);
+
+  useEffect(() => {
+    sb.from("events").select("*").order("date_from", { ascending: false }).then(({ data }) => {
+      if (data) { setEvents(data); if (data.length) setEventId((data.find(e => e.closed) || data[0]).id); }
+    });
+    sb.from("profiles").select("id,full_name,email").then(({ data }) => {
+      if (data) setNames(Object.fromEntries(data.map(p => [p.id, p.full_name || p.email])));
+    });
+  }, []);
+
+  const load = useCallback(async () => {
+    if (!eventId) return;
+    const [p, a] = await Promise.all([
+      sb.from("parts_log").select("*, drivers(id,name,race_number,class,email,phone,billing_info,economic_customer_number), profiles(full_name)")
+        .eq("event_id", eventId).order("created_at"),
+      sb.from("approvals").select("*").eq("event_id", eventId),
+    ]);
+    if (p.error) toast(p.error.message, true); else setRows(p.data);
+    if (a.data) setApprovals(Object.fromEntries(a.data.map(x => [x.driver_id, x])));
+  }, [eventId]);
+  useEffect(() => { load(); setResult(null); }, [load]);
+
+  const event = events.find(e => e.id === eventId);
+
+  const groups = useMemo(() => {
+    const m = new Map();
+    for (const r of rows) {
+      if (!m.has(r.driver_id)) m.set(r.driver_id, { driver: r.drivers, items: [] });
+      m.get(r.driver_id).items.push(r);
+    }
+    let arr = [...m.values()].sort((a, b) => String(a.driver.race_number || "").localeCompare(String(b.driver.race_number || ""), "da", { numeric: true }));
+    for (const g of arr) {
+      g.approval = approvals[g.driver.id] || null;
+      g.status = g.approval?.status || "none";
+      g.locked = ["chief_approved", "sending", "sent"].includes(g.status);
+      g.lines = merge ? mergeLines(g.items) : g.items.map(i => ({ ...i, ids: [i.id] }));
+      g.total = g.lines.reduce((s, l) => s + (lineTotal(l) || 0), 0);
+      g.missingPrice = g.lines.some(l => l.unit_price == null);
+    }
+    if (hideSent) arr = arr.filter(g => g.status !== "sent");
+    return arr;
+  }, [rows, approvals, merge, hideSent]);
+
+  function mergeLines(items) {
+    const m = new Map();
+    for (const i of items) {
+      const k = (i.product_id || i.description.trim().toLowerCase()) + "|" + (i.unit_price ?? "");
+      if (!m.has(k)) m.set(k, { ...i, qty: 0, ids: [], notes: [] });
+      const l = m.get(k); l.qty += Number(i.qty); l.ids.push(i.id); if (i.note) l.notes.push(i.note);
+    }
+    return [...m.values()];
+  }
+
+  const rpc = async (fn, args, okMsg) => {
+    const { error } = await sb.rpc(fn, args);
+    if (error) { toast(error.message, true); return false; }
+    if (okMsg) toast(okMsg); load(); return true;
+  };
+
+  const setPrice = async (line, val) => {
+    const { error } = await sb.from("parts_log").update({ unit_price: parseNum(val) }).in("id", line.ids);
+    if (error) toast(error.message, true); else load();
+  };
+
+  const toggleClosed = async () => {
+    const { error } = await sb.from("events").update({ closed: !event.closed }).eq("id", event.id);
+    if (error) return toast(error.message, true);
+    setEvents(events.map(e => e.id === event.id ? { ...e, closed: !e.closed } : e));
+  };
+
+  const readyChief = groups.filter(g => g.status === "mechanic_approved" && !g.missingPrice);
+  const readySend = groups.filter(g => g.status === "chief_approved");
+
+  const approveAll = async () => {
+    for (const g of readyChief) {
+      const { error } = await sb.rpc("chief_approve", { e: eventId, d: g.driver.id });
+      if (error) toast(g.driver.name + ": " + error.message, true);
+    }
+    toast("Godkendt"); load();
+  };
+
+  const sendToEconomic = async (driverIds) => {
+    setSending(true); setResult(null);
+    const { data, error } = await sb.functions.invoke("economic-send", { body: { event_id: eventId, driver_ids: driverIds } });
+    setSending(false);
+    if (error || data?.error) { toast(data?.error || error.message, true); }
+    else {
+      setResult(data.results || []);
+      const ok = (data.results || []).filter(r => r.ok).length;
+      toast(`${ok} kladde(r) oprettet i e-conomic`, ok !== (data.results || []).length);
+    }
+    load();
+  };
+
+  const exportCsv = () => {
+    const head = ["Løb", "Dato", "Kørernr", "Kører", "Faktura-email", "Status", "Varenr/stregkode", "Beskrivelse", "Antal", "Stykpris", "Linjetotal", "Registreret af", "Note"];
+    const lines = [head.join(";")];
+    for (const g of groups) for (const l of g.lines) {
+      lines.push([event.name, event.date_from, g.driver.race_number, g.driver.name, g.driver.email, STATUS[g.status][0], l.barcode || "",
+        l.description, numDa(l.qty), numDa(l.unit_price), numDa(lineTotal(l)),
+        l.profiles?.full_name || "", (l.notes || [l.note]).filter(Boolean).join(" / ")].map(csvCell).join(";"));
+    }
+    downloadFile(`reservedele_${event.name.replace(/[^\wæøåÆØÅ-]+/g, "_")}.csv`, "﻿" + lines.join("\r\n"), "text/csv;charset=utf-8");
+  };
+
+  const grand = groups.reduce((s, g) => s + g.total, 0);
+  const counts = groups.reduce((c, g) => (c[g.status] = (c[g.status] || 0) + 1, c), {});
+
+  return (
+    <>
+      <div className="card no-print">
+        <label style={{ marginTop: 0 }}>Løb</label>
+        <select value={eventId} onChange={e => setEventId(e.target.value)}>
+          {events.map(e => <option key={e.id} value={e.id}>{e.name} – {fmtDate(e.date_from)}{e.closed ? " (lukket)" : ""}</option>)}
+        </select>
+        <div className="row" style={{ flexWrap: "wrap", marginTop: 10 }}>
+          <label className="row" style={{ margin: 0, fontWeight: 500, color: "var(--text)" }}>
+            <input type="checkbox" style={{ width: "auto" }} checked={merge} onChange={e => { setMerge(e.target.checked); lsSet("rk_merge", e.target.checked); }} /> Saml ens varer
+          </label>
+          <label className="row" style={{ margin: 0, fontWeight: 500, color: "var(--text)" }}>
+            <input type="checkbox" style={{ width: "auto" }} checked={hideSent} onChange={e => setHideSent(e.target.checked)} /> Skjul sendte
+          </label>
+        </div>
+        {event && (
+          <div className="row" style={{ flexWrap: "wrap", marginTop: 12 }}>
+            <button className="btn sec sm" onClick={exportCsv} disabled={!groups.length}>⬇ CSV (Excel)</button>
+            <button className="btn sec sm" onClick={() => window.print()} disabled={!groups.length}>🖨 Print / PDF</button>
+            <button className={"btn sm " + (event.closed ? "sec" : "danger")} onClick={toggleClosed}>{event.closed ? "Genåbn løb" : "Luk løb"}</button>
+          </div>
+        )}
+      </div>
+
+      {event && groups.length > 0 && (
+        <div className="card no-print">
+          <h3>Godkendelse</h3>
+          {!event.closed && <p className="small muted" style={{ marginTop: 0 }}>Luk løbet, når weekenden er slut. Derefter kan de ansvarlige mekanikere godkende forbruget på deres kørere.</p>}
+          <div className="steps">
+            <div><b>{(counts.none || 0) + (counts.rejected || 0)}</b><span>Venter på mekaniker</span></div>
+            <div><b>{counts.mechanic_approved || 0}</b><span>Venter på dig</span></div>
+            <div><b>{counts.chief_approved || 0}</b><span>Klar til e-conomic</span></div>
+            <div><b>{counts.sent || 0}</b><span>Sendt</span></div>
+          </div>
+          <div className="row" style={{ flexWrap: "wrap", marginTop: 12 }}>
+            <button className="btn sm" disabled={!readyChief.length} onClick={approveAll}>✓ Godkend alle ({readyChief.length})</button>
+            <button className="btn sm" disabled={!readySend.length || sending} onClick={() => sendToEconomic(readySend.map(g => g.driver.id))}>
+              {sending ? "Sender…" : `Send til e-conomic (${readySend.length})`}</button>
+          </div>
+          {result && result.length > 0 && (
+            <ul className="list" style={{ marginTop: 8 }}>{result.map((r, i) => (
+              <li key={i} className="small"><span className="grow">{r.driver}</span>
+                {r.ok ? <span className="pill ok">Kladde #{r.draft}</span> : <span style={{ color: "var(--err)" }}>{r.error}</span>}</li>))}
+            </ul>
+          )}
+        </div>
+      )}
+
+      {event && <div className="print-only"><h2>{TEAM_NAME} – reservedele</h2><p>{event.name} · {fmtDate(event.date_from)}{event.date_to ? " – " + fmtDate(event.date_to) : ""}</p></div>}
+
+      {!groups.length && <div className="card muted">Ingen registreringer for dette løb.</div>}
+
+      {groups.map(g => (
+        <div className="card driver-block" key={g.driver.id}>
+          <div className="row" style={{ marginBottom: 8, alignItems: "flex-start" }}>
+            <span className="num">{g.driver.race_number || "–"}</span>
+            <div className="grow">
+              <div style={{ fontWeight: 700 }}>{g.driver.name}</div>
+              <div className="small muted">{[g.driver.class, g.driver.email, g.driver.phone].filter(Boolean).join(" · ")}</div>
+              {g.driver.billing_info && <div className="small muted" style={{ whiteSpace: "pre-line" }}>{g.driver.billing_info}</div>}
+            </div>
+            <div style={{ textAlign: "right" }}>
+              <StatusPill a={g.approval} />
+              {!g.driver.economic_customer_number && <div><span className="pill warn no-print" style={{ marginTop: 4 }}>Mangler kundenr.</span></div>}
+              {g.missingPrice && !g.locked && <div><span className="pill warn no-print" style={{ marginTop: 4 }}>Mangler pris</span></div>}
+            </div>
+          </div>
+          <table>
+            <thead><tr><th>Vare</th><th className="r">Antal</th><th className="r">Stk.pris</th><th className="r">I alt</th></tr></thead>
+            <tbody>
+              {g.lines.map(l => (
+                <tr key={l.ids.join()}>
+                  <td>{l.description}
+                    <div className="small muted">{[l.barcode, l.profiles?.full_name, ...(l.notes || [l.note])].filter(Boolean).join(" · ")}</div></td>
+                  <td className="r">{numDa(l.qty).replace(",00", "")}</td>
+                  <td className="r">
+                    {g.locked ? numDa(l.unit_price) : <>
+                      <input className="no-print" style={{ width: 90, padding: "6px 8px", textAlign: "right" }} inputMode="decimal"
+                        defaultValue={numDa(l.unit_price)} placeholder="kr."
+                        onBlur={e => { if (parseNum(e.target.value) !== (l.unit_price == null ? null : Number(l.unit_price))) setPrice(l, e.target.value); }} />
+                      <span className="print-only">{numDa(l.unit_price)}</span></>}
+                  </td>
+                  <td className="r">{lineTotal(l) == null ? "–" : numDa(lineTotal(l))}</td>
+                </tr>
+              ))}
+              <tr><td colSpan={3}><b>Total inkl. moms</b></td><td className="r"><b>{kr(g.total)}</b></td></tr>
+            </tbody>
+          </table>
+
+          <div className="no-print" style={{ marginTop: 10 }}>
+            <div className="small muted">
+              {g.approval?.mechanic_at && <>Mekaniker: {names[g.approval.mechanic_id] || "–"} · {fmtTime(g.approval.mechanic_at)}</>}
+              {g.approval?.chief_at && <> · Teamchef: {names[g.approval.chief_id] || "–"} · {fmtTime(g.approval.chief_at)}</>}
+            </div>
+            {g.status === "rejected" && g.approval.comment && <div className="small" style={{ color: "var(--warn)" }}>Sendt retur: {g.approval.comment}</div>}
+            {g.approval?.error && <div className="small" style={{ color: "var(--err)" }}>e-conomic: {g.approval.error}</div>}
+            <div className="row" style={{ justifyContent: "flex-end", flexWrap: "wrap", marginTop: 8 }}>
+              {(g.status === "none" || g.status === "rejected") &&
+                <span className="small muted grow">{event.closed ? "Venter på godkendelse fra ansvarlig mekaniker" : "Løbet er åbent"}</span>}
+              {(g.status === "mechanic_approved" || g.status === "chief_approved") &&
+                <button className="btn danger sm" onClick={() => setReject({ g, msg: "" })}>Send retur</button>}
+              {g.status === "mechanic_approved" &&
+                <button className="btn sm" disabled={g.missingPrice} title={g.missingPrice ? "Udfyld manglende priser først" : ""}
+                  onClick={() => rpc("chief_approve", { e: eventId, d: g.driver.id }, "Godkendt")}>✓ Godkend</button>}
+              {g.status === "chief_approved" &&
+                <button className="btn sm" disabled={sending} onClick={() => sendToEconomic([g.driver.id])}>Send til e-conomic</button>}
+            </div>
+          </div>
+        </div>
+      ))}
+      {groups.length > 1 && <div className="card row"><b className="grow">Samlet for weekenden</b><b>{kr(grand)}</b></div>}
+
+      {reject && (
+        <Modal title={"Send retur – " + reject.g.driver.name} onClose={() => setReject(null)}>
+          <p className="small muted">Listen sendes tilbage til den ansvarlige mekaniker, som kan rette og godkende igen.</p>
+          <label>Besked til mekanikeren</label>
+          <textarea rows={3} value={reject.msg} onChange={e => setReject({ ...reject, msg: e.target.value })} placeholder="fx Der mangler en kæde fra lørdag" />
+          <button className="btn block danger" style={{ marginTop: 12 }}
+            onClick={async () => { if (await rpc("reject_approval", { e: eventId, d: reject.g.driver.id, msg: reject.msg }, "Sendt retur")) setReject(null); }}>Send retur</button>
+        </Modal>
+      )}
+    </>
+  );
+}
+
+// =====================================================================
+// ADMIN: e-conomic indstillinger
+// =====================================================================
+function EconomicView() {
+  const [s, setS] = useState(null);
+  const [test, setTest] = useState("");
+  useEffect(() => { sb.from("settings").select("*").eq("id", 1).single().then(({ data }) => setS(data || { id: 1, prices_incl_vat: true })); }, []);
+  const save = async (e) => {
+    e.preventDefault();
+    const row = { id: 1, economic_product_number: s.economic_product_number?.trim() || null,
+      economic_layout_number: s.economic_layout_number ? parseInt(s.economic_layout_number, 10) : null,
+      prices_incl_vat: !!s.prices_incl_vat, updated_at: new Date().toISOString() };
+    const { error } = await sb.from("settings").upsert(row);
+    if (error) toast(error.message, true); else toast("Gemt");
+  };
+  const runTest = async () => {
+    setTest("Tester…");
+    const { data, error } = await sb.functions.invoke("economic-send", { body: { test: true } });
+    setTest(error || data?.error ? "Fejl: " + (data?.error || error.message) : "Forbundet til " + data.company);
+  };
+  if (!s) return <div className="muted">Indlæser…</div>;
+  return (
+    <>
+      <h2>e-conomic</h2>
+      <div className="card small muted">
+        Når teamchefen har godkendt en kørers liste, oprettes den som <b>fakturakladde</b> i e-conomic på kørerens kundenummer.
+        Kladden bogføres og sendes fra e-conomic som normalt. Kundenummeret sættes på køreren under “Kørere”.
+      </div>
+      <form className="card" onSubmit={save}>
+        <label style={{ marginTop: 0 }}>Standard-varenummer i e-conomic *</label>
+        <input value={s.economic_product_number || ""} onChange={e => setS({ ...s, economic_product_number: e.target.value })} placeholder="fx 100 (Reservedele)" />
+        <p className="small muted" style={{ margin: "4px 0 0" }}>Bruges på alle linjer, medmindre varen i varelisten har sit eget e-conomic varenr. Linjeteksten er altid det, mekanikeren har skrevet.</p>
+        <label>Standard-layout nr.</label>
+        <input inputMode="numeric" value={s.economic_layout_number || ""} onChange={e => setS({ ...s, economic_layout_number: e.target.value })} placeholder="Bruges hvis kunden ikke har et layout" />
+        <label className="row" style={{ fontWeight: 500, color: "var(--text)" }}>
+          <input type="checkbox" style={{ width: "auto" }} checked={!!s.prices_incl_vat} onChange={e => setS({ ...s, prices_incl_vat: e.target.checked })} />
+          Priser i appen er inkl. moms (omregnes til ekskl. 25 % moms i e-conomic)
+        </label>
+        <button className="btn block" style={{ marginTop: 14 }}>Gem</button>
+      </form>
+      <div className="card">
+        <div className="row"><b className="grow">Forbindelse</b><button className="btn sec sm" onClick={runTest}>Test forbindelse</button></div>
+        {test && <p className="small" style={{ marginBottom: 0 }}>{test}</p>}
+      </div>
+    </>
+  );
+}
+
+// =====================================================================
+// ADMIN: Løb
+// =====================================================================
+function EventsView() {
+  const [list, setList] = useState([]);
+  const [edit, setEdit] = useState(null);
+  const load = async () => { const { data } = await sb.from("events").select("*").order("date_from", { ascending: false }); if (data) setList(data); };
+  useEffect(() => { load(); }, []);
+
+  const save = async (e) => {
+    e.preventDefault();
+    const row = { name: edit.name.trim(), location: edit.location || null, date_from: edit.date_from, date_to: edit.date_to || null, closed: !!edit.closed };
+    if (!row.name) return toast("Navn mangler", true);
+    const { error } = edit.id ? await sb.from("events").update(row).eq("id", edit.id) : await sb.from("events").insert(row);
+    if (error) return toast(error.message, true);
+    setEdit(null); load();
+  };
+  const del = async (ev) => {
+    if (!confirm(`Slet "${ev.name}"?`)) return;
+    const { error } = await sb.from("events").delete().eq("id", ev.id);
+    if (error) toast(error.code === "23503" ? "Løbet har registreringer og kan ikke slettes – luk det i stedet" : error.message, true); else load();
+  };
+
+  return (
+    <>
+      <div className="row" style={{ marginBottom: 10 }}><h2 className="grow" style={{ margin: 0 }}>Løb / weekender</h2>
+        <button className="btn" onClick={() => setEdit({ name: "", location: "", date_from: new Date().toISOString().slice(0, 10), date_to: "", closed: false })}>+ Nyt løb</button></div>
+      <div className="card">
+        {!list.length && <p className="muted small">Ingen løb endnu.</p>}
+        <ul className="list">{list.map(ev => (
+          <li key={ev.id} className="tap" onClick={() => setEdit({ ...ev, date_to: ev.date_to || "", location: ev.location || "" })}>
+            <div className="grow"><div style={{ fontWeight: 600 }}>{ev.name}</div>
+              <div className="small muted">{fmtDate(ev.date_from)}{ev.date_to ? " – " + fmtDate(ev.date_to) : ""}{ev.location ? " · " + ev.location : ""}</div></div>
+            {ev.closed ? <span className="pill gray">Lukket</span> : <span className="pill ok">Åben</span>}
+          </li>))}
+        </ul>
+      </div>
+      {edit && (
+        <Modal title={edit.id ? "Rediger løb" : "Nyt løb"} onClose={() => setEdit(null)}>
+          <form onSubmit={save}>
+            <label>Navn *</label><input value={edit.name} onChange={e => setEdit({ ...edit, name: e.target.value })} placeholder="fx DM afd. 3" />
+            <label>Bane / sted</label><input value={edit.location} onChange={e => setEdit({ ...edit, location: e.target.value })} />
+            <div className="row">
+              <div className="grow"><label>Fra</label><input type="date" value={edit.date_from} onChange={e => setEdit({ ...edit, date_from: e.target.value })} /></div>
+              <div className="grow"><label>Til</label><input type="date" value={edit.date_to} onChange={e => setEdit({ ...edit, date_to: e.target.value })} /></div>
+            </div>
+            <label className="row" style={{ fontWeight: 500, color: "var(--text)" }}>
+              <input type="checkbox" style={{ width: "auto" }} checked={edit.closed} onChange={e => setEdit({ ...edit, closed: e.target.checked })} /> Lukket for registrering
+            </label>
+            <div className="row" style={{ marginTop: 14 }}>
+              {edit.id && <button type="button" className="btn danger" onClick={() => { del(edit); setEdit(null); }}>Slet</button>}
+              <button className="btn grow">Gem</button>
+            </div>
+          </form>
+        </Modal>
+      )}
+    </>
+  );
+}
+
+// =====================================================================
+// ADMIN: Kørere + tilknytning af mekanikere
+// =====================================================================
+function DriversView() {
+  const [list, setList] = useState([]);
+  const [people, setPeople] = useState([]);
+  const [links, setLinks] = useState([]);
+  const [edit, setEdit] = useState(null);
+  const [showInactive, setShowInactive] = useState(false);
+
+  const load = async () => {
+    const [d, p, l] = await Promise.all([
+      sb.from("drivers").select("*").order("race_number").order("name"),
+      sb.from("profiles").select("*").in("role", ["admin", "mechanic"]).order("full_name"),
+      sb.from("driver_mechanics").select("*"),
+    ]);
+    if (d.data) setList(d.data); if (p.data) setPeople(p.data); if (l.data) setLinks(l.data);
+  };
+  useEffect(() => { load(); }, []);
+
+  const mechOf = (id) => links.filter(l => l.driver_id === id).map(l => people.find(p => p.id === l.user_id)).filter(Boolean);
+
+  const open = (d) => setEdit(d ? { ...d, mechs: mechOf(d.id).map(p => p.id), resp: (links.find(l => l.driver_id === d.id && l.responsible) || {}).user_id || null } :
+    { name: "", race_number: "", class: "", email: "", phone: "", billing_info: "", economic_customer_number: "", active: true, mechs: [], resp: null });
+
+  const save = async (e) => {
+    e.preventDefault();
+    const row = { name: edit.name.trim(), race_number: edit.race_number || null, class: edit.class || null, email: edit.email || null,
+      phone: edit.phone || null, billing_info: edit.billing_info || null, active: edit.active,
+      economic_customer_number: edit.economic_customer_number ? parseInt(edit.economic_customer_number, 10) : null };
+    if (!row.name) return toast("Navn mangler", true);
+    let id = edit.id;
+    if (id) { const { error } = await sb.from("drivers").update(row).eq("id", id); if (error) return toast(error.message, true); }
+    else { const { data, error } = await sb.from("drivers").insert(row).select().single(); if (error) return toast(error.message, true); id = data.id; }
+    const cur = links.filter(l => l.driver_id === id).map(l => l.user_id);
+    const add = edit.mechs.filter(m => !cur.includes(m)).map(user_id => ({ driver_id: id, user_id }));
+    const rem = cur.filter(m => !edit.mechs.includes(m));
+    if (add.length) { const { error } = await sb.from("driver_mechanics").insert(add); if (error) toast(error.message, true); }
+    if (rem.length) { const { error } = await sb.from("driver_mechanics").delete().eq("driver_id", id).in("user_id", rem); if (error) toast(error.message, true); }
+    // ansvarlig mekaniker (højst én pr. kører)
+    const resp = edit.mechs.includes(edit.resp) ? edit.resp : null;
+    await sb.from("driver_mechanics").update({ responsible: false }).eq("driver_id", id);
+    if (resp) { const { error } = await sb.from("driver_mechanics").update({ responsible: true }).eq("driver_id", id).eq("user_id", resp); if (error) toast(error.message, true); }
+    setEdit(null); load(); toast("Gemt");
+  };
+
+  const shown = list.filter(d => showInactive || d.active);
+
+  return (
+    <>
+      <div className="row" style={{ marginBottom: 10 }}><h2 className="grow" style={{ margin: 0 }}>Kørere</h2>
+        <button className="btn" onClick={() => open(null)}>+ Ny kører</button></div>
+      <div className="card">
+        {!shown.length && <p className="muted small">Ingen kørere endnu.</p>}
+        <ul className="list">{shown.map(d => (
+          <li key={d.id} className="tap" onClick={() => open(d)}>
+            <span className="num">{d.race_number || "–"}</span>
+            <div className="grow"><div style={{ fontWeight: 600 }}>{d.name} {!d.active && <span className="pill gray">Inaktiv</span>}</div>
+              <div className="small muted">{d.class ? d.class + " · " : ""}{mechOf(d.id).map(p => (p.full_name || p.email) + (links.some(l => l.driver_id === d.id && l.user_id === p.id && l.responsible) ? " (ansvarlig)" : "")).join(", ") || "Ingen mekaniker tilknyttet"}</div></div>
+            {!d.economic_customer_number && <span className="pill warn">Mangler kundenr.</span>}
+            <span className="muted">›</span>
+          </li>))}
+        </ul>
+        <label className="row small" style={{ fontWeight: 500 }}><input type="checkbox" style={{ width: "auto" }} checked={showInactive} onChange={e => setShowInactive(e.target.checked)} /> Vis inaktive</label>
+      </div>
+      {edit && (
+        <Modal title={edit.id ? "Rediger kører" : "Ny kører"} onClose={() => setEdit(null)}>
+          <form onSubmit={save}>
+            <label>Navn *</label><input value={edit.name} onChange={e => setEdit({ ...edit, name: e.target.value })} />
+            <div className="row">
+              <div style={{ width: 100 }}><label>Nr.</label><input value={edit.race_number || ""} onChange={e => setEdit({ ...edit, race_number: e.target.value })} /></div>
+              <div className="grow"><label>Klasse</label><input value={edit.class || ""} onChange={e => setEdit({ ...edit, class: e.target.value })} placeholder="fx Rotax Junior" /></div>
+            </div>
+            <label>Faktura-email</label><input type="email" value={edit.email || ""} onChange={e => setEdit({ ...edit, email: e.target.value })} />
+            <label>Telefon</label><input type="tel" value={edit.phone || ""} onChange={e => setEdit({ ...edit, phone: e.target.value })} />
+            <label>e-conomic kundenummer</label><input inputMode="numeric" value={edit.economic_customer_number || ""} onChange={e => setEdit({ ...edit, economic_customer_number: e.target.value })} placeholder="Kunden fakturaen oprettes på" />
+            <label>Faktura-oplysninger</label><textarea rows={3} value={edit.billing_info || ""} onChange={e => setEdit({ ...edit, billing_info: e.target.value })} placeholder="Navn på betaler, adresse, evt. CVR" />
+            <label>Mekanikere / hjælpere der står for køreren</label>
+            <p className="small muted" style={{ margin: "0 0 4px" }}>Vælg hvem der er <b>ansvarlig</b> – det er den person, der godkender forbruget efter løbet.</p>
+            {!people.length && <p className="small muted">Ingen godkendte brugere endnu. Brugere opretter sig selv i appen og godkendes under “Brugere”.</p>}
+            <div>{people.map(p => (
+              <label key={p.id} className="row" style={{ fontWeight: 500, color: "var(--text)", margin: "6px 0" }}>
+                <input type="checkbox" style={{ width: "auto" }} checked={edit.mechs.includes(p.id)}
+                  onChange={e => setEdit({ ...edit, mechs: e.target.checked ? [...edit.mechs, p.id] : edit.mechs.filter(x => x !== p.id) })} />
+                <span className="grow">{p.full_name || p.email} <span className="small muted">{p.role === "admin" ? "(admin)" : ""}</span></span>
+                {edit.mechs.includes(p.id) && (
+                  <button type="button" className={"btn sm " + (edit.resp === p.id ? "" : "sec")} onClick={(e) => { e.preventDefault(); setEdit({ ...edit, resp: edit.resp === p.id ? null : p.id }); }}>
+                    {edit.resp === p.id ? "★ Ansvarlig" : "Gør ansvarlig"}</button>)}
+              </label>))}
+            </div>
+            <label className="row" style={{ fontWeight: 500, color: "var(--text)" }}>
+              <input type="checkbox" style={{ width: "auto" }} checked={edit.active} onChange={e => setEdit({ ...edit, active: e.target.checked })} /> Aktiv
+            </label>
+            <button className="btn block" style={{ marginTop: 14 }}>Gem</button>
+          </form>
+        </Modal>
+      )}
+    </>
+  );
+}
+
+// =====================================================================
+// ADMIN: Brugere (godkend + roller)
+// =====================================================================
+function UsersView({ me }) {
+  const [list, setList] = useState([]);
+  const load = async () => { const { data } = await sb.from("profiles").select("*").order("created_at"); if (data) setList(data); };
+  useEffect(() => { load(); }, []);
+  const setRole = async (p, role) => {
+    if (p.id === me.id && role !== "admin" && !confirm("Du fjerner dine egne admin-rettigheder. Fortsæt?")) return;
+    const { error } = await sb.from("profiles").update({ role }).eq("id", p.id);
+    if (error) toast(error.message, true); else { toast("Opdateret"); load(); }
+  };
+  const pending = list.filter(p => p.role === "pending");
+  return (
+    <>
+      <h2>Brugere</h2>
+      <div className="card small muted">Mekanikere/hjælpere opretter selv en bruger i appen med deres email. Godkend dem her og tilknyt dem derefter til kørere under “Kørere”.</div>
+      {pending.length > 0 && <div className="banner">{pending.length} bruger(e) venter på godkendelse</div>}
+      <div className="card"><ul className="list">{list.map(p => (
+        <li key={p.id}>
+          <div className="grow"><div style={{ fontWeight: 600 }}>{p.full_name || "(uden navn)"}</div><div className="small muted">{p.email}</div></div>
+          <select style={{ width: 140 }} value={p.role} onChange={e => setRole(p, e.target.value)}>
+            <option value="pending">Afventer</option><option value="mechanic">Mekaniker</option><option value="admin">Admin</option>
+          </select>
+        </li>))}</ul></div>
+    </>
+  );
+}
+
+// =====================================================================
+// ADMIN: Vareliste (forberedt til stregkoder)
+// =====================================================================
+function ProductsView() {
+  const [list, setList] = useState([]);
+  const [q, setQ] = useState("");
+  const [edit, setEdit] = useState(null);
+  const [imp, setImp] = useState(null);
+  const [scan, setScan] = useState(false);
+
+  const load = async () => { const { data } = await sb.from("products").select("*").order("name"); if (data) setList(data); };
+  useEffect(() => { load(); }, []);
+
+  const save = async (e) => {
+    e.preventDefault();
+    const row = { name: edit.name.trim(), barcode: edit.barcode?.trim() || null, sku: edit.sku?.trim() || null, unit_price: parseNum(edit.unit_price), active: edit.active,
+      economic_product_number: edit.economic_product_number?.trim() || null };
+    if (!row.name) return toast("Navn mangler", true);
+    const { error } = edit.id ? await sb.from("products").update(row).eq("id", edit.id) : await sb.from("products").insert(row);
+    if (error) return toast(error.code === "23505" ? "Stregkoden findes allerede" : error.message, true);
+    setEdit(null); load();
+  };
+
+  const doImport = async () => {
+    // Format pr. linje: stregkode;varenr;navn;pris   (komma- eller semikolon-separeret, evt. med overskrift)
+    const rows = imp.split(/\r?\n/).map(l => l.trim()).filter(Boolean).map(l => l.split(/;|\t/).map(s => s.trim().replace(/^"|"$/g, "")))
+      .filter(c => c.length >= 3 && !/^stregkode|^barcode/i.test(c[0]))
+      .map(c => ({ barcode: c[0] || null, sku: c[1] || null, name: c[2], unit_price: parseNum(c[3]), active: true }));
+    if (!rows.length) return toast("Ingen gyldige linjer fundet", true);
+    const withBc = rows.filter(r => r.barcode), noBc = rows.filter(r => !r.barcode);
+    let err = null;
+    if (withBc.length) err = (await sb.from("products").upsert(withBc, { onConflict: "barcode" })).error;
+    if (!err && noBc.length) err = (await sb.from("products").insert(noBc)).error;
+    if (err) return toast(err.message, true);
+    toast(`${rows.length} varer importeret`); setImp(null); load();
+  };
+
+  const shown = list.filter(p => !q || [p.name, p.barcode, p.sku].some(v => v && v.toLowerCase().includes(q.toLowerCase())));
+
+  return (
+    <>
+      <div className="row" style={{ marginBottom: 10 }}><h2 className="grow" style={{ margin: 0 }}>Vareliste</h2>
+        <button className="btn sec" onClick={() => setImp("")}>Import</button>
+        <button className="btn" onClick={() => setEdit({ name: "", barcode: "", sku: "", unit_price: "", active: true })}>+ Vare</button></div>
+      <div className="card small muted">Varelisten er valgfri. Når en vare har en stregkode, udfyldes navn og pris automatisk når mekanikeren scanner eller indtaster koden. Varer kan også vælges fra listen ved at skrive navnet.</div>
+      <div className="card">
+        <input placeholder="Søg navn, varenr. eller stregkode" value={q} onChange={e => setQ(e.target.value)} />
+        <ul className="list" style={{ marginTop: 6 }}>{shown.map(p => (
+          <li key={p.id} className="tap" onClick={() => setEdit({ ...p, unit_price: numDa(p.unit_price), barcode: p.barcode || "", sku: p.sku || "", economic_product_number: p.economic_product_number || "" })}>
+            <div className="grow"><div style={{ fontWeight: 600 }}>{p.name} {!p.active && <span className="pill gray">Inaktiv</span>}</div>
+              <div className="small muted">{[p.sku, p.barcode].filter(Boolean).join(" · ") || "Ingen stregkode"}</div></div>
+            <span className="small">{kr(p.unit_price)}</span>
+          </li>))}
+        </ul>
+        {!shown.length && <p className="muted small">Ingen varer.</p>}
+      </div>
+      {edit && (
+        <Modal title={edit.id ? "Rediger vare" : "Ny vare"} onClose={() => setEdit(null)}>
+          <form onSubmit={save}>
+            <label>Navn *</label><input value={edit.name} onChange={e => setEdit({ ...edit, name: e.target.value })} />
+            <label>Stregkode</label>
+            <div className="row"><input className="grow" value={edit.barcode} onChange={e => setEdit({ ...edit, barcode: e.target.value })} onKeyDown={e => e.key === "Enter" && e.preventDefault()} />
+              {canCameraScan && <button type="button" className="btn sec" onClick={() => setScan(true)}>📷</button>}</div>
+            <div className="row">
+              <div className="grow"><label>Varenr.</label><input value={edit.sku} onChange={e => setEdit({ ...edit, sku: e.target.value })} /></div>
+              <div className="grow"><label>Pris inkl. moms</label><input inputMode="decimal" value={edit.unit_price} onChange={e => setEdit({ ...edit, unit_price: e.target.value })} /></div>
+            </div>
+            <label>e-conomic varenr. (valgfri)</label><input value={edit.economic_product_number || ""} onChange={e => setEdit({ ...edit, economic_product_number: e.target.value })} placeholder="Ellers bruges standard-varenr." />
+            <label className="row" style={{ fontWeight: 500, color: "var(--text)" }}><input type="checkbox" style={{ width: "auto" }} checked={edit.active} onChange={e => setEdit({ ...edit, active: e.target.checked })} /> Aktiv</label>
+            <button className="btn block" style={{ marginTop: 14 }}>Gem</button>
+          </form>
+          {scan && <CameraScanner onClose={() => setScan(false)} onResult={c => { setScan(false); setEdit(x => ({ ...x, barcode: c })); }} />}
+        </Modal>
+      )}
+      {imp != null && (
+        <Modal title="Importér varer" onClose={() => setImp(null)}>
+          <p className="small muted">Indsæt linjer fra Excel (kopiér kolonnerne direkte) eller CSV med semikolon:<br /><code>stregkode;varenr;navn;pris</code><br />Findes stregkoden allerede, opdateres varen.</p>
+          <textarea rows={10} value={imp} onChange={e => setImp(e.target.value)} placeholder={"5701234567890;KA-219;Kæde 219 106L;189,00"} />
+          <button className="btn block" style={{ marginTop: 12 }} onClick={doImport}>Importér</button>
+        </Modal>
+      )}
+    </>
+  );
+}
+
+// =====================================================================
+// App-skal
+// =====================================================================
+function App() {
+  const [session, setSession] = useState(undefined);
+  const [profile, setProfile] = useState(null);
+  const [recovery, setRecovery] = useState(false);
+  const [tab, setTab] = useState(lsGet("rk_tab", "reg"));
+
+  useEffect(() => {
+    sb.auth.getSession().then(({ data }) => setSession(data.session));
+    const { data: sub } = sb.auth.onAuthStateChange((ev, s) => { setSession(s); if (ev === "PASSWORD_RECOVERY") setRecovery(true); });
+    return () => sub.subscription.unsubscribe();
+  }, []);
+
+  const loadProfile = useCallback(async () => {
+    if (!session) { setProfile(null); return; }
+    const { data, error } = await sb.from("profiles").select("*").eq("id", session.user.id).single();
+    if (data) { setProfile(data); lsSet("rk_profile", data); }
+    else if (error) { const c = lsGet("rk_profile", null); if (c && c.id === session.user.id) setProfile(c); }
+    flushQueue();
+  }, [session]);
+  useEffect(() => { loadProfile(); }, [loadProfile]);
+
+  const go = (t) => { setTab(t); lsSet("rk_tab", t); window.scrollTo(0, 0); };
+  const logout = async () => { await sb.auth.signOut(); localStorage.removeItem("rk_profile"); };
+
+  if (SUPABASE_URL.includes("DIT-PROJEKT")) return <div className="login"><div className="card"><h2>Opsætning mangler</h2><p>Indsæt Supabase URL og anon key øverst i index.html.</p></div></div>;
+  if (session === undefined) return <div className="center muted" style={{ marginTop: "30vh" }}>Indlæser…</div>;
+  if (recovery) return <SetNewPassword onDone={() => setRecovery(false)} />;
+  if (!session) return <><Login /><Toaster /></>;
+  if (!profile) return <div className="center muted" style={{ marginTop: "30vh" }}>Indlæser profil…</div>;
+
+  const isAdmin = profile.role === "admin";
+  const tabs = isAdmin
+    ? [["reg", "Registrér"], ["sum", "Oversigt"], ["events", "Løb"], ["drivers", "Kørere"], ["users", "Brugere"], ["products", "Varer"], ["eco", "e-conomic"]]
+    : [];
+  const cur = isAdmin ? (tabs.find(t => t[0] === tab) ? tab : "reg") : "reg";
+
+  return (
+    <>
+      <header className="top">
+        <img src="icons/icon-192.png" alt="" />
+        <div><div className="t">{TEAM_NAME}</div><div className="s">{profile.full_name || profile.email}{isAdmin ? " · admin" : ""}</div></div>
+        <div className="sp" />
+        <button className="btn ghost sm" onClick={logout}>Log ud</button>
+      </header>
+      {isAdmin && <nav className="tabs">{tabs.map(([k, l]) => <button key={k} className={cur === k ? "on" : ""} onClick={() => go(k)}>{l}</button>)}</nav>}
+      <main key={profile.id}>
+        {profile.role === "pending" ? (
+          <div className="card center">
+            <h2>Afventer godkendelse</h2>
+            <p className="muted">Din bruger er oprettet. Teamchefen skal godkende dig og tilknytte dig til dine kørere, før du kan registrere reservedele.</p>
+            <button className="btn sec" onClick={loadProfile}>Tjek igen</button>
+          </div>
+        ) : (
+          <>
+            {cur === "reg" && <RegisterView profile={profile} isAdmin={isAdmin} />}
+            {cur === "sum" && <SummaryView />}
+            {cur === "events" && <EventsView />}
+            {cur === "drivers" && <DriversView />}
+            {cur === "users" && <UsersView me={profile} />}
+            {cur === "products" && <ProductsView />}
+            {cur === "eco" && <EconomicView />}
+          </>
+        )}
+      </main>
+      <Toaster />
+    </>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+
+if ("serviceWorker" in navigator) window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));
+</script>
+</body>
+</html>
