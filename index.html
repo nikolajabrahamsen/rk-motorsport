@@ -82,9 +82,13 @@
   @media print{
     header.top,nav.tabs,.no-print,.toast{display:none!important}
     .print-only{display:block}
-    body{background:#fff} main{padding:0;max-width:none}
+    html,body{background:#fff} main{padding:0;max-width:none}
     .card{border:0;padding:0;margin-bottom:22px;page-break-inside:avoid}
-    .driver-block{page-break-after:always}
+    .driver-block + .driver-block{break-before:page;page-break-before:always}
+    .print-head{display:flex!important;align-items:center;gap:12px;border-bottom:2px solid var(--blue);padding-bottom:10px;margin-bottom:16px}
+    .print-head img{width:56px;height:56px}
+    .print-head .grow div:first-child{font-size:18px;font-weight:700}
+    .pill{border:1px solid currentColor}
   }
 </style>
 </head>
@@ -782,12 +786,17 @@ function SummaryView() {
         </div>
       )}
 
-      {event && <div className="print-only"><h2>{TEAM_NAME} – reservedele</h2><p>{event.name} · {fmtDate(event.date_from)}{event.date_to ? " – " + fmtDate(event.date_to) : ""}</p></div>}
 
       {!groups.length && <div className="card muted">Ingen registreringer for dette løb.</div>}
 
       {groups.map(g => (
         <div className="card driver-block" key={g.driver.id}>
+          <div className="print-head" style={{ display: "none" }}>
+            <img src="logo.png" alt="" />
+            <div className="grow"><div>{TEAM_NAME} – reservedele</div>
+              <div className="small muted">{event.name} · {fmtDate(event.date_from)}{event.date_to ? " – " + fmtDate(event.date_to) : ""}</div></div>
+            <div className="small muted">Udskrevet {fmtDate(new Date())}</div>
+          </div>
           <div className="row" style={{ marginBottom: 8, alignItems: "flex-start" }}>
             <span className="num">{g.driver.race_number || "–"}</span>
             <div className="grow">
@@ -844,7 +853,7 @@ function SummaryView() {
           </div>
         </div>
       ))}
-      {groups.length > 1 && <div className="card row"><b className="grow">Samlet for weekenden</b><b>{kr(grand)}</b></div>}
+      {groups.length > 1 && <div className="card row no-print"><b className="grow">Samlet for weekenden</b><b>{kr(grand)}</b></div>}
 
       {reject && (
         <Modal title={"Send retur – " + reject.g.driver.name} onClose={() => setReject(null)}>
